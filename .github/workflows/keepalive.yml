@@ -1,0 +1,19 @@
+name: Instabox Keepalive
+
+on:
+  schedule:
+    - cron: '*/9 * * * *' # 每 9 分钟运行一次
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Keepalive Request
+        env:
+          API_KEY: ${{ secrets.INSTABOX_API_KEY }}
+        run: |
+          curl -s -X PUT https://api.instabox.sh/v1/machines/$(curl -s https://api.instabox.sh/v1/machines -H "X-API-Key: $API_KEY" | jq -r '.machines[0].id // empty')/activity-leases/keepalive \
+            -H "X-API-Key: $API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{"ttlSeconds": 300}'
